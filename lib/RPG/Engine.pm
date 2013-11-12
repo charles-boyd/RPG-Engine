@@ -1,18 +1,33 @@
-#!/usr/bin/env perl
+package RPG::Engine;
 
 use warnings;
 use strict;
 
-use lib '../lib';
+use RPG::World;
 
-use RPG::Character;
-use RPG::Item::Weapon;
+sub new {
+    my ( $class, %params ) = @_;
 
-exit(main());
+    my $self =
+	{
+	    'WORLD'   => RPG::World->new(),
+	    'turn'    => 0,
+	};
 
-sub main {
+    bless($self,$class);
+    return $self;
+}
 
-    my @characters = generate_characters(5);
+sub load {
+    my ( $self ) = @_;
+    $self->{'WORLD'}->generate_weapons();
+    $self->{'WORLD'}->generate_characters(5);
+}
+
+sub run {
+    my ( $self ) = @_;
+
+    my @characters = @{ $self->{'WORLD'}->get_characters() };
 
     while ( my $n = scalar(@characters) ) {
 
@@ -20,7 +35,6 @@ sub main {
 	    print $characters[0]->get_name() . " has won!","\n";
 	    return 0;
 	}
-
 
 	my $k = shift(@characters);
 
@@ -58,32 +72,7 @@ sub main {
 	}
 	print '-'x40,"\n"
     }
+    return 0;
 }
 
-
-
-sub generate_characters {
-    my $n = shift;
-
-    my $short_sword = RPG::Item::Weapon->new( 'id' => 1, 'name' => 'shortsword', 'properties' => { 'dp' => 2, } );
-    my $broad_sword = RPG::Item::Weapon->new( 'id' => 1, 'name' => 'broadsword', 'properties' => { 'dp' => 4, } );
-
-    my @c = ();
-    foreach my $i ( 1 .. $n ) {
-	my $character = RPG::Character->new
-	    (
-		'id'   => $i,
-		'name' => qq{player.$i},
-		'hp'   => 10,
-	    );
-	$character->add_weapon($short_sword);
-	$character->add_weapon($broad_sword);
-	if ( $i % 2 == 0 ) {
-	    $character->equip_weapon($short_sword->get_name());
-	} else {
-	    $character->equip_weapon($broad_sword->get_name());
-	}
-	push( @c, $character );
-    }
-    return @c;
-}
+1;

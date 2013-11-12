@@ -1,9 +1,9 @@
-package RPG::Character;
+package RPG::GameEntity::Character;
 
 use warnings;
 use strict;
 
-use RPG::Inventory;
+use RPG::GameEntity::Inventory;
 
 sub new {
     my ( $class, %params ) = @_;
@@ -15,7 +15,7 @@ sub new {
 	    'hp'        => $params{'hp'}        // 100,
 	    'status'    => $params{'status'}    // 'OK',
 	    'weapon'    => $params{'weapon'}    // undef,
-	    'inventory' => $params{'inventory'} // RPG::Inventory->new(),
+	    'inventory' => $params{'inventory'} // [],
 	    'actions'   =>
 		{
 		    'attack' =>
@@ -37,39 +37,30 @@ sub get_status    { return $_[0]->{'status'}; }
 sub get_inventory { return $_[0]->{'inventory'}; }
 sub get_weapon    { return $_[0]->{'weapon'}; }
 
-
 sub equip_weapon {
-    my ( $self, $w_name ) = @_;
-
-    my $weapon = $self->{'inventory'}->get_weapon($w_name);
-
-    if ( ! defined($w_name) ) {
-	warn "weapon $w_name is not in the inventory.";
-	return undef;
-    } else {
-	$self->{'weapon'} = $weapon;
-	$weapon->set_status( 'EQUIPPED' );
-    }
-    return $w_name;
+    my ( $self, $p_weapon ) = @_;
+    $self->{'weapon'} = $p_weapon;
+    $p_weapon->set_status( 'EQUIPPED' );
 }
 
 sub add_weapon {
-    my ( $self, $weapon ) = @_;
-    return $self->{'inventory'}->add_weapon($weapon);
+    my ( $self, $p_weapon ) = @_;
+    push( @{ $self->{'inventory'} }, $p_weapon );
 }
 
 sub take_damage {
-    my ( $self, $damage ) = @_;
+    my ( $self, $p_damage ) = @_;
 
-    my $remaining_hp = $self->{'hp'} - $damage;
+    my $remaining_hp = $self->{'hp'} - $p_damage;
 
     if ( $remaining_hp <= 0 ) {
 	$self->{'hp'} = 0;
 	$self->{'status'} = 'DEAD';
+    } else {
+	$self->{'hp'} = $remaining_hp;
     }
 
-    $self->{'hp'} = $remaining_hp;
-    return $damage;
+    return $p_damage;
 }
 
 sub perform_action {

@@ -1,9 +1,9 @@
-package RPG::Item::Weapon;
+package RPG::GameEntity::Item::Weapon;
 
 use warnings;
 use strict;
 
-use parent qw{ RPG::Item };
+use parent qw{ RPG::GameEntity::Item };
 
 sub new {
     my ( $this, %params ) = @_;
@@ -19,5 +19,7 @@ sub set_dp {
     my ( $self, $dp ) = @_;
     $self->set_property('dp',$dp);
 }
+
+
 
 1;
