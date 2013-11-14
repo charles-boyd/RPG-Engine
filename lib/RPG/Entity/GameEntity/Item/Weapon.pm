@@ -9,8 +9,8 @@ sub new {
     my ( $this, %p_args ) = @_;
     my $class = ref($this) || $this;
     my $self = $class->SUPER::new(%p_args);
-
     $self->set_attribute('equipable', 1);
+    return $self;
 }
 
 sub dp   { return $_[0]->get_attribute('dp'); }

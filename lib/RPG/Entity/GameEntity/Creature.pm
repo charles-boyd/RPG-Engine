@@ -65,7 +65,7 @@ sub set_health {
 
 sub equip_item {
     my ( $self, $p_key, $p_item ) = @_;
-    $self->set_property($p_key) = $p_item;
+    $self->set_property($p_key, $p_item);
 }
 
 sub equip_weapon {
@@ -80,17 +80,13 @@ sub equip_armor {
 
 sub attack {
     my ( $self, $p_target ) = @_;
-
-    if ( defined(my $weapon = $self->get_property('weapon')) ) {
-	return $p_target->take_damage( $weapon->dp() );
-    }
-    return 0;
+    return $p_target->take_damage( $self->weapon()->dp() );
 }
 
 sub take_damage {
     my ( $self, $p_damage ) = @_;
 
-    my $remaining_hp = $self->get_health() - $p_damage;
+    my $remaining_hp = $self->health() - $p_damage;
 
     if ( $remaining_hp <= 0 ) {
 	$self->set_health(0);

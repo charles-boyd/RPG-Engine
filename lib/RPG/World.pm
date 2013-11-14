@@ -6,6 +6,9 @@ use strict;
 use RPG::GameEntity::Character;
 use RPG::GameEntity::Item::Weapon;
 
+use Utils::Character qw{ generate_characters };
+use Utils::Weapon    qw{ generate_weapons };
+
 sub new {
     my ( $class, %params ) = @_;
 
@@ -91,79 +94,6 @@ sub add_character {
 sub delete_character {
     my ( $self, $p_id ) = @_;
     return $self->delete_component( 'characters', $p_id );
-}
-
-##
-# TODO: Move these to testing library
-##
-
-sub _generate_weapon {
-    my ( $self, $p_args ) = @_;
-
-    my $weapon = RPG::GameEntity::Item::Weapon->new
-	(
-	    'name'   => $p_args->{'name'},
-	    'type'   => $p_args->{'type'},
-	    'dp'     => $p_args->{'dp'},
-	);
-
-    return $weapon;
-}
-
-
-sub _generate_weapons {
-    my ( $self, $p_count ) = @_;
-
-    foreach my $i ( 0 .. $p_count ) {
-
-	my $dp = ( ( 2 * int(rand($i)) ) % $p_count ) + 1;
-
-	if ( $dp < 0 ) {
-	    $dp *= -1;
-	}
-
-	my $w_properties = {
-	    'name' =>  'dagger',
-	    'type' =>  'edged',
-	    'dp'   =>  $dp,
-	};
-
-	my $weapon = $self->_generate_weapon($w_properties);
-	$self->add_weapon($weapon);
-    }
-}
-
-sub _generate_character {
-    my ( $self, $p_args ) = @_;
-
-    my $character = RPG::GameEntity::Character->new
-	(
-	    'name' => $p_args->{'name'},
-	    'hp'   => $p_args->{'hp'},
-	);
-
-    return $character;
-}
-
-sub _generate_characters {
-    my ( $self, $p_count ) = @_;
-
-    foreach my $i ( 1 .. $p_count ) {
-
-	my $hp = ( ( 2 * int(rand($i)) ) % $p_count ) + 1;
-
-	if ( $hp < 0 ) {
-	    $hp *= -1;
-	}
-
-	my $c_properties = {
-	    'name' => qq{Player.$i},
-	    'hp'   => $hp,
-	};
-
-	my $character = $self->_generate_character($c_properties);
-	$self->add_character($character);
-    }
 }
 
 1;
