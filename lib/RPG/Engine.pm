@@ -10,69 +10,92 @@ sub new {
 
     my $self =
 	{
-	    'WORLD'   => RPG::World->new(),
-	    'turn'    => 0,
+	    'WORLD' => RPG::World->new(),
+	    'mode'  => 'COMBAT',
 	};
 
     bless($self,$class);
+
+
+    ## TODO: Move this to test code
+    $self->{'WORLD'}->_generate_weapons(5);
+    $self->{'WORLD'}->_generate_characters(5);
+
+    $self->{'player'} = $self->{'WORLD'}->get_character(0);
     return $self;
 }
 
-sub load {
-    my ( $self ) = @_;
-    $self->{'WORLD'}->generate_weapons();
-    $self->{'WORLD'}->generate_characters(5);
+sub get_mode  { return $_[0]->{'mode'}; }
+sub get_world { return $_[0]->{'WORLD'}; }
+
+
+sub set_mode {
+    my ( $self, $p_mode ) = @_;
+    $self->{'mode'} = $p_mode;
 }
+
 
 sub run {
     my ( $self ) = @_;
 
-    my @characters = @{ $self->{'WORLD'}->get_characters() };
+    my $player  = $self->{'player'};
 
-    while ( my $n = scalar(@characters) ) {
+    while( my $mode = $self->get_mode() ) {
 
-	if ( $n == 1 ) {
-	    print $characters[0]->get_name() . " has won!","\n";
+	if ( $mode eq 'COMBAT' ) {
+
+	    # TODO: Make this more generic by reading from global state
+	    my @enemies   = ();
+	    foreach my $e ( map { $self->get_world()->get_character($_) } ( 1 .. (scalar(@{ $self->get_world()->get_characters() }) - 1) ) ) {
+		push( @enemies, $e )
+		    if ( defined($e) && $e->get_status() ne 'DEAD' );
+	    }
+
+	    $self->combat( $player, @enemies );
+	}
+	elsif ( $mode eq 'GAME_OVER' ) {
+	    print "GAME OVER";
 	    return 0;
+	} else {
+	    die "error - game exited without game_over";
+	    return 1;
 	}
+    }
+    warn "escaped from main loop";
+    return -1;
+}
 
-	my $k = shift(@characters);
+sub combat {
+    my ( $self, @enemies ) = @_;
 
-	my $r = int(rand($n - 1));
-	my $target = $characters[$r];
+    my $n = scalar(@enemies);
+    my $rand = int(rand($n - 1));
 
-	if ( $k->get_status() eq 'DEAD' ) {
-	    next;
-	}
-	elsif ( $target->get_status() eq 'DEAD' ) {
-	    unshift( @characters, $k );
-	    next;
-	}
-	elsif ( $target->get_id() == $k->get_id() ) {
-	    unshift( @characters, $k );
-	    next;
-	}
-	else {
-	    push( @characters, $k );
+    my $player = $self->{'player'};
 
-	    my $weapon = $k->get_weapon();
-	    my $damage = $k->perform_action( 'attack', $target, $weapon );
+    if ( $n == 0 ) {
+	print 'SUCCESS: ' . $player->get_name() . " has vaniqushed all $n enemies!","\n";
+	$self->set_mode('GAME_OVER');
+    } else {
+	my $target = $enemies[$rand];
+	my $weapon = $player->get_weapon();
+	my $damage = $player->attack($target);
 
-	    print $k->get_name()
+	    print $player->get_name()
 		  . " attacks " . $target->get_name()
 		  . " with "    . $weapon->get_name()
                   . " for "     . $damage
 		  . " dp.","\n";
 
-	    print $target->get_name() . " has " . $target->get_hp() . " hp remaining.","\n";
+	    print $target->get_name() . " has " . $target->get_health() . " hp remaining.","\n";
 
 	    if ( $target->get_status() eq 'DEAD' ) {
 		print '*'x2 . $target->get_name() . " has died!" . '*'x2 , "\n";
+		$self->{'WORLD'}->delete_character($target->get_id());
 	    }
-	}
-	print '-'x40,"\n"
+	print '-'x40,"\n";
     }
-    return 0;
+    $self->set_mode('COMBAT');
 }
 
 1;

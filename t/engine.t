@@ -11,6 +11,5 @@ exit(main());
 
 sub main {
     my $engine = RPG::Engine->new();
-    $engine->load();
     return $engine->run();
 }
