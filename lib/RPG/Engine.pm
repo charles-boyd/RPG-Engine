@@ -5,8 +5,8 @@ use strict;
 
 use Carp;
 
+use RPG::World;
 use RPG::Engine::Activity::CombatActivity;
-use Data::Dump::Color;
 
 sub new {
     my ( $class, %p_args ) = @_;
@@ -14,10 +14,20 @@ sub new {
     my $self = { };
 
     bless($self,$class);
+
+    my $world = $p_args{'world'} // RPG::World->new();
+    $self->set_world($world);
+
     return $self;
 }
 
 sub activity { return $_[0]->{'ACTIVITY'}; }
+sub world    { return $_[0]->{'WORLD'};    }
+
+sub set_world {
+    my ( $self, $p_world ) = @_;
+    $self->{'WORLD'} = $p_world;
+}
 
 sub set_activity {
     my ( $self, $p_activity ) = @_;
@@ -47,6 +57,9 @@ sub run {
 	    $self->activity()->message('A');
 	    next;
 	}
+
+	$self->world()->update();
+
     }
 
     return $self->activity();

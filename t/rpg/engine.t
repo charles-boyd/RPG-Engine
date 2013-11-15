@@ -4,6 +4,7 @@ use warnings;
 use strict;
 
 use RPG::Engine;
+use RPG::World;
 
 use Utils::Character qw{ generate_hero generate_character };
 use Utils::Weapon qw{ generate_weapon };
@@ -27,12 +28,25 @@ sub main {
     $e->inventory()->add_item($w2);
     $e->equip_weapon($w2);
 
-    my $engine = RPG::Engine->new();
+    my $world  = RPG::World->new( 'hero' => $p );
+    $world->add_item($w1);
+    $world->add_item($w2);
+    $world->add_creature($e);
+
+    my $engine = RPG::Engine->new( 'world' => $world );
 
     $engine->load_activity('CombatActivity', 'attacker' => $p, 'target' => $e, );
 
     my $activity = $engine->run();
 
-    dd($activity);
+    foreach ( @{ $activity->status() } ) {
+	print $_,"\n";
+	print '-'x20,"\n";
+    }
+
+    print 'winner: ' . $activity->winner()->name(),"\n";
+
+    dd($activity->winner());
+
     return 0;
 }

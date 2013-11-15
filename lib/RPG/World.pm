@@ -3,97 +3,73 @@ package RPG::World;
 use warnings;
 use strict;
 
-use RPG::GameEntity::Character;
-use RPG::GameEntity::Item::Weapon;
-
-use Utils::Character qw{ generate_characters };
-use Utils::Weapon    qw{ generate_weapons };
-
 sub new {
-    my ( $class, %params ) = @_;
+    my ( $class, %p_args ) = @_;
 
     my $self =
 	{
-	    'characters' => [],
-	    'weapons'    => [],
+	    'hero'      => $p_args{'hero'}                // undef,
+	    'entities'  =>
+		{
+		    'creatures' => $p_args{'creatures'}  // undef,
+		    'items'     => $p_args{'items'}      // undef,
+		},
 	};
 
     bless($self,$class);
     return $self;
 }
 
-sub get_entity {
-    my ( $self, $p_entity ) = @_;
-    return $self->{$p_entity};
-}
+sub hero      { return $_[0]->{'hero'}; }
+sub creatures { return $_[0]->{'entities'}->{'creatures'}; }
+sub items     { return $_[0]->{'entities'}->{'items'}; }
 
-sub get_component {
-    my ( $self, $p_entity, $p_id ) = @_;
-    return $self->{$p_entity}->[$p_id];
-}
+sub add_entity_to_table {
+    my ( $self, $p_table_key, $p_entity ) = @_;
 
-sub add_component {
-    my ( $self, $p_entity, $p_component ) = @_;
-
-    my $n = scalar(@{ $self->{$p_entity} });
-
-    foreach my $i ( 0 .. ($n - 1) ) {
-	if ( ! defined($self->{$p_entity}->[$i]) ) {
-	    $p_component->set_id($i);
-	    $self->{$p_entity}->[$i] = $p_component;
-	    return $i;
-	}
+    if ( exists($self->{'entities'}->{$p_table_key}) ) {
+	my $entity_key = $p_entity->id();
+	$self->{'entities'}->{$p_table_key}->{$entity_key} = $p_entity;
+	return $entity_key;
     }
-    $p_component->set_id($n);
-    $self->{$p_entity}->[$n] = $p_component;
-    return $n;
 
+    return 0;
 }
 
-sub delete_component {
-    my ( $self, $p_entity, $p_id ) = @_;
-    $self->{$p_entity}->[$p_id] = undef;
-    return $p_id;
+sub add_creature {
+    my ( $self, $p_creature ) = @_;
+
+    # sanity check
+
+    return $self->add_entity_to_table( 'creatures', $p_creature);
 }
 
-sub get_weapon {
-    my ( $self, $p_id ) = @_;
-    return $self->get_component( 'weapons', $p_id );
+
+sub add_item {
+    my ( $self, $p_item ) = @_;
+
+    # sanity check
+
+    return $self->add_entity_to_table( 'items', $p_item);
 }
 
-sub get_weapons {
+sub update {
     my ( $self ) = @_;
-    return $self->get_entity( 'weapons' );
-}
 
-sub add_weapon {
-    my ( $self, $p_weapon ) = @_;
-    return $self->add_component( 'weapons', $p_weapon );
-}
+    foreach my $k ( keys %{ $self->creatures() } ) {
+	$self->{'entities'}->{'creatures'}->{$k}->update()
+	    if ( defined($self->{'entities'}->{'creatures'}->{$k}) );
+    }
 
-sub delete_weapon {
-    my ( $self, $p_id ) = @_;
-    return $self->delete_component( 'weapons', $p_id );
-}
+    foreach my $i ( keys %{ $self->items() } ) {
+	$self->{'entities'}->{'items'}->{$i}->update()
+	    if ( defined($self->{'entities'}->{'items'}->{$i}) );
+    }
 
-sub get_character {
-    my ( $self, $p_id ) = @_;
-    return $self->get_component( 'characters', $p_id );
-}
+    $self->hero()->update();
 
-sub get_characters {
-    my ( $self ) = @_;
-    return $self->get_entity( 'characters' );
-}
+    return $self;
 
-sub add_character {
-    my ( $self, $p_ch ) = @_;
-    return $self->add_component( 'characters', $p_ch );
-}
-
-sub delete_character {
-    my ( $self, $p_id ) = @_;
-    return $self->delete_component( 'characters', $p_id );
 }
 
 1;

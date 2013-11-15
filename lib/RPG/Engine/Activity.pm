@@ -147,7 +147,9 @@ sub update_status {
 
 sub tick {
     my ( $self ) = @_;
+
     $self->{'turn_count'}++;
+
     return $self;
 }
 
