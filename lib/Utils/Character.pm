@@ -7,7 +7,14 @@ use RPG::Entity::GameEntity::Creature::Character;
 
 require Exporter;
 our @ISA    = qw{ Exporter };
-our @EXPORT = qw{ generate_character generate_characters };
+our @EXPORT = qw{ generate_hero generate_character generate_characters };
+
+sub generate_hero {
+    my ( $p_args ) = @_;
+    my $character = generate_character($p_args);
+    $character->set_property('is_hero','1');
+    return $character;
+}
 
 sub generate_character {
     my ( $p_args ) = @_;
@@ -18,7 +25,7 @@ sub generate_character {
 	    'status' => 'OK',
 	    'attributes' =>
 		{
-		    'hp'           => int(rand(200)),
+		    'hp'           => int(rand(20)) + 10,
 		    'level'        => int(rand(20)),
 		    'species'      => q{human},
 		    'class'        => q{thief},
