@@ -6,6 +6,8 @@ use strict;
 use Carp;
 use Data::UUID;
 
+use Utils::Asset qw{ save_entity };
+
 sub new {
     my ( $class, %p_args ) = @_;
 
@@ -182,7 +184,7 @@ sub set_meta {
 sub save {
     my ( $self ) = @_;
 
-    # serialize to JSON and save to file somewhere
+    save_entity($self);
 
     $self->set_flag('_dirty',0);
 
